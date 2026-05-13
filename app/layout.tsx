@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-instrument-sans",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -27,9 +30,13 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={`${instrumentSans.variable} h-full scroll-smooth`}
+      className={cn(
+        "h-full scroll-smooth",
+        instrumentSans.variable,
+        instrumentSans.className,
+      )}
     >
-      <body className="min-h-full bg-background font-sans text-foreground antialiased">
+      <body className="min-h-full bg-background text-foreground antialiased">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
