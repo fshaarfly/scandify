@@ -267,6 +267,7 @@ export function ScanWorkspace() {
         if (!blob) return;
         try {
           await addPage(blob);
+          stopCamera();
         } catch {
           setCameraError("Gagal menyimpan foto dari kamera.");
         }
