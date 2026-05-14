@@ -82,11 +82,12 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
   const imgRef = useRef<HTMLImageElement>(null);
   const titleId = useId();
   const [crop, setCrop] = useState<NormCrop>({ x: 0, y: 0, w: 1, h: 1 });
-  const [drag, setDrag] = useState<DragState>(null);
   const [layoutTick, setLayoutTick] = useState(0);
   const [overlayBox, setOverlayBox] = useState<OverlayBox | null>(null);
   const metricsRef = useRef<DisplayMetrics | null>(null);
   const cropRef = useRef(crop);
+  const dragRef = useRef<DragState>(null);
+  const dragListenersRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     cropRef.current = crop;
@@ -163,8 +164,9 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
     return () => window.removeEventListener("resize", onResize);
   }, [refreshMetrics]);
 
-  const onPointerMove = useCallback(
+  const applyPointerDrag = useCallback(
     (e: PointerEvent) => {
+      const drag = dragRef.current;
       if (!drag) return;
       const m = metricsRef.current;
       if (!m) return;
@@ -230,34 +232,68 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
         );
       }
     },
-    [drag, clampCrop],
+    [clampCrop],
   );
 
   const endDrag = useCallback(() => {
-    setDrag(null);
+    dragListenersRef.current?.();
+    dragListenersRef.current = null;
+    dragRef.current = null;
   }, []);
 
-  useEffect(() => {
-    if (!drag) return;
-    const up = () => endDrag();
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", up);
-    window.addEventListener("pointermove", onPointerMove);
-    return () => {
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
-      window.removeEventListener("pointermove", onPointerMove);
-    };
-  }, [drag, onPointerMove, endDrag]);
+  useEffect(
+    () => () => {
+      dragListenersRef.current?.();
+      dragListenersRef.current = null;
+      dragRef.current = null;
+    },
+    [],
+  );
 
   const startDrag = (kind: NonNullable<DragState>["kind"], e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (dragRef.current) return;
     refreshMetrics();
     const m = metricsRef.current;
     if (!m) return;
     const { u, v } = clientToNorm(e.clientX, e.clientY, m);
-    setDrag({ kind, u0: u, v0: v, crop0: { ...cropRef.current } });
+    dragRef.current = { kind, u0: u, v0: v, crop0: { ...cropRef.current } };
+
+    const target = e.currentTarget;
+    if (target instanceof HTMLElement) {
+      try {
+        target.setPointerCapture(e.pointerId);
+      } catch {
+        /* noop */
+      }
+    }
+
+    const onMove = (ev: PointerEvent) => {
+      ev.preventDefault();
+      applyPointerDrag(ev);
+    };
+    const onEnd = (ev: PointerEvent) => {
+      if (ev.pointerId !== e.pointerId) return;
+      if (target instanceof HTMLElement) {
+        try {
+          target.releasePointerCapture(e.pointerId);
+        } catch {
+          /* noop */
+        }
+      }
+      endDrag();
+    };
+
+    window.addEventListener("pointermove", onMove, { capture: true, passive: false });
+    window.addEventListener("pointerup", onEnd, { capture: true });
+    window.addEventListener("pointercancel", onEnd, { capture: true });
+
+    dragListenersRef.current = () => {
+      window.removeEventListener("pointermove", onMove, { capture: true });
+      window.removeEventListener("pointerup", onEnd, { capture: true });
+      window.removeEventListener("pointercancel", onEnd, { capture: true });
+    };
   };
 
   const handleApply = () => {
@@ -267,8 +303,9 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
     onApply({ sx, sy, sw, sh });
   };
 
-  const handleCls =
-    "absolute z-20 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border-2 border-primary bg-background shadow touch-manipulation";
+  /** Target sentuh ~44px (pedoman aksesibilitas mobile); titik kecil di tengah sebagai petunjuk visual. */
+  const handleBtnCls =
+    "pointer-events-auto absolute z-20 flex h-11 w-11 min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center rounded-full border-2 border-primary bg-background/95 shadow-md";
 
   const b = overlayBox;
 
@@ -308,33 +345,38 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
 
       <div className="min-h-0 flex-1 overflow-auto px-4 py-3 sm:px-5">
         <div className="flex justify-center rounded-lg bg-muted/40 py-2 ring-1 ring-border/60">
-          <div className="relative inline-block max-h-[min(60vh,480px)] max-w-full">
+          <div className="relative inline-block max-h-[min(60vh,480px)] max-w-full touch-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={imgRef}
               src={imageUrl}
               alt=""
               draggable={false}
-              className="block max-h-[min(60vh,480px)] max-w-full object-contain select-none"
+              className="block max-h-[min(60vh,480px)] max-w-full touch-none object-contain select-none"
+              onContextMenu={(ev) => ev.preventDefault()}
               onLoad={() => {
                 requestAnimationFrame(() => refreshMetrics());
               }}
             />
             {b ? (
               <div className="pointer-events-none absolute inset-0">
-                <div className="absolute inset-x-0 top-0 bg-black/50" style={{ height: b.oy }} aria-hidden />
                 <div
-                  className="absolute inset-x-0 bottom-0 bg-black/50"
+                  className="pointer-events-none absolute inset-x-0 top-0 bg-black/50"
+                  style={{ height: b.oy }}
+                  aria-hidden
+                />
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50"
                   style={{ height: Math.max(0, b.H - b.oy - b.dh) }}
                   aria-hidden
                 />
                 <div
-                  className="absolute left-0 bg-black/50"
+                  className="pointer-events-none absolute left-0 bg-black/50"
                   style={{ top: b.oy, width: b.ox, height: b.dh }}
                   aria-hidden
                 />
                 <div
-                  className="absolute right-0 bg-black/50"
+                  className="pointer-events-none absolute right-0 bg-black/50"
                   style={{
                     top: b.oy,
                     width: Math.max(0, b.W - b.ox - b.dw),
@@ -343,12 +385,12 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
                   aria-hidden
                 />
                 <div
-                  className="absolute bg-black/50"
+                  className="pointer-events-none absolute bg-black/50"
                   style={{ left: b.ox, top: b.oy, width: b.dw, height: b.top - b.oy }}
                   aria-hidden
                 />
                 <div
-                  className="absolute bg-black/50"
+                  className="pointer-events-none absolute bg-black/50"
                   style={{
                     left: b.ox,
                     top: b.top + b.ch,
@@ -358,7 +400,7 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
                   aria-hidden
                 />
                 <div
-                  className="absolute bg-black/50"
+                  className="pointer-events-none absolute bg-black/50"
                   style={{
                     left: b.ox,
                     top: b.top,
@@ -368,7 +410,7 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
                   aria-hidden
                 />
                 <div
-                  className="absolute bg-black/50"
+                  className="pointer-events-none absolute bg-black/50"
                   style={{
                     left: b.left + b.cw,
                     top: b.top,
@@ -378,7 +420,7 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
                   aria-hidden
                 />
                 <div
-                  className="pointer-events-auto absolute z-10 cursor-move ring-2 ring-primary"
+                  className="pointer-events-auto absolute z-10 cursor-grab touch-none ring-2 ring-primary active:cursor-grabbing"
                   style={{ left: b.left, top: b.top, width: b.cw, height: b.ch }}
                   onPointerDown={(e) => startDrag("move", e)}
                   role="presentation"
@@ -386,31 +428,39 @@ export function ManualCropDialog({ imageUrl, onClose, onApply }: ManualCropDialo
                 <button
                   type="button"
                   aria-label="Seret sudut kiri atas"
-                  className={cn(handleCls, "pointer-events-auto cursor-nwse-resize")}
+                  className={cn(handleBtnCls, "cursor-nwse-resize")}
                   style={{ left: `${b.left}px`, top: `${b.top}px` }}
                   onPointerDown={(e) => startDrag("nw", e)}
-                />
+                >
+                  <span className="pointer-events-none size-2.5 rounded-sm bg-primary shadow-sm" aria-hidden />
+                </button>
                 <button
                   type="button"
                   aria-label="Seret sudut kanan atas"
-                  className={cn(handleCls, "pointer-events-auto cursor-nesw-resize")}
+                  className={cn(handleBtnCls, "cursor-nesw-resize")}
                   style={{ left: `${b.left + b.cw}px`, top: `${b.top}px` }}
                   onPointerDown={(e) => startDrag("ne", e)}
-                />
+                >
+                  <span className="pointer-events-none size-2.5 rounded-sm bg-primary shadow-sm" aria-hidden />
+                </button>
                 <button
                   type="button"
                   aria-label="Seret sudut kiri bawah"
-                  className={cn(handleCls, "pointer-events-auto cursor-nesw-resize")}
+                  className={cn(handleBtnCls, "cursor-nesw-resize")}
                   style={{ left: `${b.left}px`, top: `${b.top + b.ch}px` }}
                   onPointerDown={(e) => startDrag("sw", e)}
-                />
+                >
+                  <span className="pointer-events-none size-2.5 rounded-sm bg-primary shadow-sm" aria-hidden />
+                </button>
                 <button
                   type="button"
                   aria-label="Seret sudut kanan bawah"
-                  className={cn(handleCls, "pointer-events-auto cursor-nwse-resize")}
+                  className={cn(handleBtnCls, "cursor-nwse-resize")}
                   style={{ left: `${b.left + b.cw}px`, top: `${b.top + b.ch}px` }}
                   onPointerDown={(e) => startDrag("se", e)}
-                />
+                >
+                  <span className="pointer-events-none size-2.5 rounded-sm bg-primary shadow-sm" aria-hidden />
+                </button>
               </div>
             ) : null}
           </div>
