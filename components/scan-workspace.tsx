@@ -151,6 +151,18 @@ export function ScanWorkspace() {
     setCameraError(null);
   }, []);
 
+  /** Video hanya ada di DOM saat `cameraOn`; sambungkan stream setelah mount. */
+  useEffect(() => {
+    if (!cameraOn) return;
+    const stream = streamRef.current;
+    const video = videoRef.current;
+    if (!stream || !video) return;
+    video.srcObject = stream;
+    void video.play().catch(() => {
+      setCameraError("Tidak bisa memutar pratinjau kamera. Coba tutup tab lain yang memakai kamera.");
+    });
+  }, [cameraOn]);
+
   const startCamera = useCallback(async () => {
     stopCamera();
     setCameraError(null);
@@ -164,11 +176,6 @@ export function ScanWorkspace() {
         audio: false,
       });
       streamRef.current = stream;
-      const video = videoRef.current;
-      if (video) {
-        video.srcObject = stream;
-        await video.play();
-      }
       setCameraOn(true);
     } catch {
       setCameraError("Tidak bisa membuka kamera. Periksa izin perangkat.");
