@@ -10,6 +10,18 @@ export type EarlyAccessState = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function isDiscordWebhook(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return (
+      u.pathname.includes("/api/webhooks/") &&
+      (u.hostname === "discord.com" || u.hostname === "discordapp.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function submitEarlyAccess(
   _prev: EarlyAccessState,
   formData: FormData,
@@ -35,14 +47,30 @@ export async function submitEarlyAccess(
 
   if (webhook) {
     try {
+      const at = new Date().toISOString();
+      const body = isDiscordWebhook(webhook)
+        ? JSON.stringify({
+            embeds: [
+              {
+                title: "Early access — Scandify",
+                color: 0x22c55e,
+                fields: [
+                  { name: "Email", value: email, inline: true },
+                  { name: "Waktu (UTC)", value: at, inline: true },
+                ],
+                footer: { text: "scandify-early-access" },
+              },
+            ],
+          })
+        : JSON.stringify({
+            email,
+            source: "scandify-early-access",
+            at,
+          });
       const res = await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          source: "scandify-early-access",
-          at: new Date().toISOString(),
-        }),
+        body,
       });
       if (!res.ok) {
         console.error("[early-access] webhook", res.status, await res.text());
