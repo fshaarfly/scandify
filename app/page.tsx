@@ -438,13 +438,13 @@ export default function Home() {
           </div>
           <Separator className="sm:hidden" />
           <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted-foreground">
-            <Link href="#" className="transition-colors hover:text-foreground">
+            <Link href="/syarat" className="transition-colors hover:text-foreground">
               Syarat
             </Link>
-            <Link href="#" className="transition-colors hover:text-foreground">
+            <Link href="/privasi" className="transition-colors hover:text-foreground">
               Privasi
             </Link>
-            <Link href="#" className="transition-colors hover:text-foreground">
+            <Link href="/kontak" className="transition-colors hover:text-foreground">
               Kontak
             </Link>
           </nav>

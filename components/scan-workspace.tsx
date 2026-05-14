@@ -6,12 +6,16 @@ import {
   Camera,
   FileDown,
   ImagePlus,
+  Loader2,
+  RefreshCw,
   Trash2,
   VideoOff,
 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { buildScanPdfFromJpegs } from "@/lib/build-scan-pdf";
+import { extractDocumentJpeg } from "@/lib/document-scan";
+import { applyScanFilterToJpeg, SCAN_FILTER_OPTIONS, type ScanFilterId } from "@/lib/scan-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -29,6 +33,12 @@ type ScanPage = {
   id: string;
   previewUrl: string;
   jpegBlob: Blob;
+  /** Gambar asli setelah normalisasi JPEG (sebelum crop). */
+  rawJpegBlob: Blob;
+  /** Setelah deteksi kertas / perspektif (atau sama dengan raw jika tidak ada crop). */
+  baseBlob: Blob;
+  filter: ScanFilterId;
+  docDetected: boolean;
 };
 
 async function blobToJpeg(blob: Blob, quality = 0.92): Promise<Blob> {
@@ -71,9 +81,12 @@ export function ScanWorkspace() {
   const [cameraOn, setCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [autoCropEnabled, setAutoCropEnabled] = useState(true);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pagesRef = useRef<ScanPage[]>([]);
+  const autoCropRef = useRef(autoCropEnabled);
 
   const activePage = useMemo(() => {
     if (pages.length === 0) return null;
@@ -84,6 +97,10 @@ export function ScanWorkspace() {
   useEffect(() => {
     pagesRef.current = pages;
   }, [pages]);
+
+  useEffect(() => {
+    autoCropRef.current = autoCropEnabled;
+  }, [autoCropEnabled]);
 
   useEffect(() => {
     return () => {
@@ -133,11 +150,37 @@ export function ScanWorkspace() {
   }, [stopCamera]);
 
   const addPage = useCallback(async (blob: Blob) => {
-    const jpegBlob = await blobToJpeg(blob);
-    const previewUrl = URL.createObjectURL(jpegBlob);
-    const id = crypto.randomUUID();
-    setPages((prev) => [...prev, { id, previewUrl, jpegBlob }]);
-    setSelectedId(id);
+    setProcessing(true);
+    setCameraError(null);
+    try {
+      const rawJpegBlob = await blobToJpeg(blob);
+      let baseBlob = rawJpegBlob;
+      let docDetected = false;
+      if (autoCropRef.current) {
+        try {
+          const extracted = await extractDocumentJpeg(rawJpegBlob);
+          if (extracted) {
+            baseBlob = extracted;
+            docDetected = true;
+          }
+        } catch {
+          /* tetap pakai gambar penuh */
+        }
+      }
+      const filter: ScanFilterId = "auto";
+      const jpegBlob = await applyScanFilterToJpeg(baseBlob, filter);
+      const previewUrl = URL.createObjectURL(jpegBlob);
+      const id = crypto.randomUUID();
+      setPages((prev) => [
+        ...prev,
+        { id, previewUrl, jpegBlob, rawJpegBlob, baseBlob, filter, docDetected },
+      ]);
+      setSelectedId(id);
+    } catch {
+      setCameraError("Gagal memproses gambar. Coba gambar lain atau matikan auto crop.");
+    } finally {
+      setProcessing(false);
+    }
   }, []);
 
   const onFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,6 +231,74 @@ export function ScanWorkspace() {
     });
   };
 
+  const updatePageFilter = useCallback(async (id: string, filter: ScanFilterId) => {
+    const page = pagesRef.current.find((p) => p.id === id);
+    if (!page || page.filter === filter) return;
+    setProcessing(true);
+    setCameraError(null);
+    try {
+      const jpegBlob = await applyScanFilterToJpeg(page.baseBlob, filter);
+      setPages((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p;
+          URL.revokeObjectURL(p.previewUrl);
+          return {
+            ...p,
+            filter,
+            jpegBlob,
+            previewUrl: URL.createObjectURL(jpegBlob),
+          };
+        }),
+      );
+    } catch {
+      setCameraError("Gagal menerapkan filter.");
+    } finally {
+      setProcessing(false);
+    }
+  }, []);
+
+  const reprocessActivePage = useCallback(async () => {
+    const id = selectedId ?? pagesRef.current[0]?.id;
+    if (!id) return;
+    const page = pagesRef.current.find((p) => p.id === id);
+    if (!page) return;
+    setProcessing(true);
+    setCameraError(null);
+    try {
+      let baseBlob = page.rawJpegBlob;
+      let docDetected = false;
+      if (autoCropRef.current) {
+        try {
+          const extracted = await extractDocumentJpeg(page.rawJpegBlob);
+          if (extracted) {
+            baseBlob = extracted;
+            docDetected = true;
+          }
+        } catch {
+          /* gunakan penuh */
+        }
+      }
+      const jpegBlob = await applyScanFilterToJpeg(baseBlob, page.filter);
+      setPages((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p;
+          URL.revokeObjectURL(p.previewUrl);
+          return {
+            ...p,
+            baseBlob,
+            docDetected,
+            jpegBlob,
+            previewUrl: URL.createObjectURL(jpegBlob),
+          };
+        }),
+      );
+    } catch {
+      setCameraError("Gagal memproses ulang halaman.");
+    } finally {
+      setProcessing(false);
+    }
+  }, [selectedId]);
+
   const move = (id: string, dir: -1 | 1) => {
     setPages((prev) => {
       const i = prev.findIndex((x) => x.id === id);
@@ -229,8 +340,9 @@ export function ScanWorkspace() {
           </Badge>
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Tambah halaman dari galeri atau kamera, atur urutan, lalu unduh PDF. Koreksi perspektif
-          otomatis menyusul — saat ini ekspor memakai gambar yang Anda unggah.
+          Unggah atau foto dokumen: deteksi kertas dan koreksi perspektif otomatis, lalu pilih filter tampilan
+          seperti scanner aplikasi. Semua pemrosesan di peramban Anda; urutan halaman bisa diatur sebelum
+          unduh PDF.
         </p>
       </div>
 
@@ -257,6 +369,7 @@ export function ScanWorkspace() {
               type="file"
               accept="image/*"
               multiple
+              disabled={processing}
               className="sr-only"
               onChange={onFiles}
             />
@@ -265,6 +378,7 @@ export function ScanWorkspace() {
               className={cn(
                 buttonVariants({ variant: "outline" }),
                 "inline-flex w-full cursor-pointer items-center justify-start gap-2",
+                processing && "pointer-events-none opacity-50",
               )}
             >
               <ImagePlus className="size-4" aria-hidden />
@@ -273,14 +387,52 @@ export function ScanWorkspace() {
 
             <Separator className="bg-border/80" />
 
+            {processing ? (
+              <p className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5 text-xs text-muted-foreground">
+                <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
+                Memproses gambar…
+              </p>
+            ) : null}
+
+            <div className="rounded-lg border border-border/60 bg-muted/15 p-2.5">
+              <p className="text-xs font-medium text-foreground">Auto crop kertas</p>
+              <p className="mt-1 text-[0.65rem] leading-snug text-muted-foreground">
+                Mendeteksi tepi dokumen dan meluruskan sudut pandang. Halaman yang sudah ada bisa diproses
+                ulang dari pratinjau kanan.
+              </p>
+              <Button
+                type="button"
+                variant={autoCropEnabled ? "secondary" : "outline"}
+                size="sm"
+                className="mt-2 h-7 w-full text-xs"
+                disabled={processing}
+                onClick={() => setAutoCropEnabled((v) => !v)}
+                aria-pressed={autoCropEnabled}
+              >
+                {autoCropEnabled ? "Aktif untuk halaman baru" : "Nonaktif untuk halaman baru"}
+              </Button>
+            </div>
+
+            <Separator className="bg-border/80" />
+
             {!cameraOn ? (
-              <Button variant="outline" className="w-full justify-start gap-2" onClick={startCamera}>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2"
+                onClick={startCamera}
+                disabled={processing}
+              >
                 <Camera className="size-4" aria-hidden />
                 Aktifkan kamera
               </Button>
             ) : (
               <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start gap-2" onClick={captureFrame}>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={captureFrame}
+                  disabled={processing}
+                >
                   <Camera className="size-4" aria-hidden />
                   Ambil foto
                 </Button>
@@ -324,8 +476,15 @@ export function ScanWorkspace() {
                       className="size-12 shrink-0 rounded-md object-cover"
                     />
                     <span className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-                      <span className="truncate text-xs font-medium text-foreground">
-                        Halaman {idx + 1}
+                      <span className="flex flex-wrap items-center gap-1">
+                        <span className="truncate text-xs font-medium text-foreground">
+                          Halaman {idx + 1}
+                        </span>
+                        {p.docDetected ? (
+                          <Badge variant="outline" className="h-4 px-1 text-[0.6rem] font-normal">
+                            Kertas
+                          </Badge>
+                        ) : null}
                       </span>
                       <span className="flex flex-wrap gap-1">
                         <Button
@@ -406,16 +565,57 @@ export function ScanWorkspace() {
                 Pilih halaman di daftar kiri untuk melihat ukuran penuh.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex min-h-[min(60vh,28rem)] items-center justify-center rounded-b-xl bg-muted/15 p-4">
+            <CardContent className="flex min-h-[min(60vh,28rem)] flex-col gap-3 rounded-b-xl bg-muted/15 p-4">
               {activePage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={activePage.previewUrl}
-                  alt={`Pratinjau halaman`}
-                  className="max-h-[min(60vh,28rem)] w-auto max-w-full rounded-lg object-contain shadow-md ring-1 ring-border/60"
-                />
+                <>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-foreground">Filter tampilan</p>
+                      <p className="text-[0.65rem] text-muted-foreground">
+                        {activePage.docDetected
+                          ? "Kertas terdeteksi; Anda bisa mengganti gaya di bawah."
+                          : "Tidak ada crop otomatis; coba tombol crop ulang di atas atau foto lebih dekat."}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 shrink-0 gap-1.5 text-xs"
+                      disabled={processing}
+                      onClick={() => void reprocessActivePage()}
+                    >
+                      <RefreshCw className="size-3.5" aria-hidden />
+                      Crop &amp; filter ulang
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SCAN_FILTER_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.id}
+                        type="button"
+                        size="sm"
+                        variant={activePage.filter === opt.id ? "secondary" : "outline"}
+                        className="h-8 rounded-full px-3 text-xs"
+                        disabled={processing}
+                        title={opt.hint}
+                        onClick={() => void updatePageFilter(activePage.id, opt.id)}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex flex-1 flex-col items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activePage.previewUrl}
+                      alt="Pratinjau halaman"
+                      className="max-h-[min(55vh,26rem)] w-auto max-w-full rounded-lg object-contain shadow-md ring-1 ring-border/60"
+                    />
+                  </div>
+                </>
               ) : (
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="flex flex-1 items-center justify-center text-center text-sm text-muted-foreground">
                   Unggah gambar atau ambil foto untuk mulai.
                 </p>
               )}
@@ -424,7 +624,7 @@ export function ScanWorkspace() {
               <Button
                 size="lg"
                 className="w-full rounded-full sm:w-auto sm:min-w-[200px]"
-                disabled={pages.length === 0 || exporting}
+                disabled={pages.length === 0 || exporting || processing}
                 onClick={exportPdf}
               >
                 <FileDown className="size-4" aria-hidden />
