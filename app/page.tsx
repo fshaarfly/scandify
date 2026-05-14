@@ -8,6 +8,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { DemoBeforeAfter } from "@/components/demo-before-after";
+import { EarlyAccessForm } from "@/components/early-access-form";
 import { LandingFaq } from "@/components/landing-faq";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 const nav = [
+  { href: "/scan", label: "Scan" },
   { href: "#fitur", label: "Fitur" },
   { href: "#cara-kerja", label: "Cara kerja" },
   { href: "#harga", label: "Harga" },
@@ -198,9 +201,17 @@ export default function Home() {
                 Scandify membantu Anda memfoto kertas, merapikan tampilan, dan mengekspor PDF — alur
                 sederhana, tampilan modern, siap untuk pekerjaan harian.
               </p>
-              <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-center">
+              <div className="mt-10 flex flex-col flex-wrap items-stretch justify-center gap-3 sm:flex-row sm:items-center">
                 <Button size="lg" className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20" asChild>
                   <Link href="#early-access">Gabung early access</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="h-12 min-w-[200px] rounded-full px-8 shadow-sm"
+                  asChild
+                >
+                  <Link href="/scan">Buka scanner</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -217,21 +228,20 @@ export default function Home() {
               id="demo-placeholder"
               className="mx-auto mt-16 max-w-3xl overflow-hidden border-border/80 bg-card/70 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40"
             >
-              <div className="relative border-b border-border/60 bg-linear-to-br from-primary/10 via-transparent to-accent-muted/30 px-6 py-8 sm:px-10 sm:py-12">
-                <div className="absolute right-6 top-6 hidden sm:block">
+              <div className="relative border-b border-border/60 bg-linear-to-br from-primary/10 via-transparent to-accent-muted/30 px-4 py-8 sm:px-10 sm:py-10">
+                <div className="absolute right-4 top-6 sm:right-6">
                   <Badge variant="outline" className="rounded-full">
                     Pratinjau
                   </Badge>
                 </div>
-                <div className="mx-auto flex max-w-md flex-col items-center text-center">
-                  <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25">
-                    <ScanLine className="size-7" aria-hidden />
-                  </div>
-                  <CardTitle className="text-lg sm:text-xl">Area demo produk</CardTitle>
-                  <CardDescription className="mt-2 text-base">
-                    Rekaman layar atau widget scan interaktif bisa Anda letakkan di sini — siap
-                    dipoles dengan animasi halus.
+                <div className="mx-auto flex max-w-lg flex-col items-center pt-8 text-center sm:pt-2">
+                  <CardTitle className="text-lg sm:text-xl">Sebelum &amp; sesudah</CardTitle>
+                  <CardDescription className="mt-2 max-w-md text-base">
+                    Contoh foto dokumen dari ponsel — geser untuk melihat perbedaan.
                   </CardDescription>
+                  <div className="mt-8 w-full">
+                    <DemoBeforeAfter />
+                  </div>
                 </div>
               </div>
               <CardFooter className="flex flex-wrap items-center justify-center gap-3 border-border/60 bg-muted/30 py-4 text-xs text-muted-foreground sm:justify-between sm:text-sm">
@@ -406,21 +416,11 @@ export default function Home() {
                   Siap merapikan dokumen berikutnya?
                 </CardTitle>
                 <CardDescription className="mx-auto mt-3 max-w-lg text-base">
-                  Formulir atau autentikasi akan menyusul. Simpan repo ini — kami lanjutkan fitur scan
-                  & integrasi Supabase bertahap.
+                  Daftarkan email Anda — kami kabari saat beta dibuka. Tanpa spam; autentikasi akun
+                  menyusul bersama integrasi cloud opsional.
                 </CardDescription>
-                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="h-12 rounded-full px-8"
-                    disabled
-                  >
-                    Form pendaftaran — segera
-                  </Button>
-                  <Button size="lg" className="h-12 rounded-full px-8" asChild>
-                    <Link href="#demo-placeholder">Lihat area demo</Link>
-                  </Button>
+                <div className="mx-auto flex w-full justify-center">
+                  <EarlyAccessForm />
                 </div>
               </div>
             </Card>
