@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowUp,
   Camera,
+  Crop,
   FileDown,
   ImagePlus,
   Loader2,
@@ -13,7 +14,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { ManualCropDialog } from "@/components/manual-crop-dialog";
 import { buildScanPdfFromJpegs } from "@/lib/build-scan-pdf";
+import { cropJpegBlob } from "@/lib/crop-jpeg";
 import { extractDocumentJpeg } from "@/lib/document-scan";
 import { applyScanFilterToJpeg, SCAN_FILTER_OPTIONS, type ScanFilterId } from "@/lib/scan-filters";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +42,8 @@ type ScanPage = {
   baseBlob: Blob;
   filter: ScanFilterId;
   docDetected: boolean;
+  /** Area halaman ditentukan lewat crop manual dari gambar asli. */
+  manualCrop: boolean;
 };
 
 async function blobToJpeg(blob: Blob, quality = 0.92): Promise<Blob> {
@@ -83,6 +88,8 @@ export function ScanWorkspace() {
   const [exporting, setExporting] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [autoCropEnabled, setAutoCropEnabled] = useState(true);
+  const [manualCropObjectUrl, setManualCropObjectUrl] = useState<string | null>(null);
+  const [manualCropTargetId, setManualCropTargetId] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pagesRef = useRef<ScanPage[]>([]);
@@ -93,6 +100,24 @@ export function ScanWorkspace() {
     const match = selectedId ? pages.find((p) => p.id === selectedId) : undefined;
     return match ?? pages[0] ?? null;
   }, [pages, selectedId]);
+
+  const closeManualCropDialog = useCallback(() => {
+    setManualCropObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setManualCropTargetId(null);
+  }, []);
+
+  const openManualCrop = useCallback(() => {
+    const page = activePage;
+    if (!page) return;
+    setManualCropObjectUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(page.rawJpegBlob);
+    });
+    setManualCropTargetId(page.id);
+  }, [activePage]);
 
   useEffect(() => {
     pagesRef.current = pages;
@@ -110,12 +135,13 @@ export function ScanWorkspace() {
   }, []);
 
   const revokeAll = useCallback(() => {
+    closeManualCropDialog();
     setPages((prev) => {
       for (const p of prev) URL.revokeObjectURL(p.previewUrl);
       return [];
     });
     setSelectedId(null);
-  }, []);
+  }, [closeManualCropDialog]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -173,7 +199,7 @@ export function ScanWorkspace() {
       const id = crypto.randomUUID();
       setPages((prev) => [
         ...prev,
-        { id, previewUrl, jpegBlob, rawJpegBlob, baseBlob, filter, docDetected },
+        { id, previewUrl, jpegBlob, rawJpegBlob, baseBlob, filter, docDetected, manualCrop: false },
       ]);
       setSelectedId(id);
     } catch {
@@ -287,6 +313,7 @@ export function ScanWorkspace() {
             ...p,
             baseBlob,
             docDetected,
+            manualCrop: false,
             jpegBlob,
             previewUrl: URL.createObjectURL(jpegBlob),
           };
@@ -298,6 +325,41 @@ export function ScanWorkspace() {
       setProcessing(false);
     }
   }, [selectedId]);
+
+  const applyManualCrop = useCallback(
+    async (rect: { sx: number; sy: number; sw: number; sh: number }) => {
+      const id = manualCropTargetId;
+      if (!id) return;
+      const page = pagesRef.current.find((p) => p.id === id);
+      if (!page) return;
+      setProcessing(true);
+      setCameraError(null);
+      try {
+        const baseBlob = await cropJpegBlob(page.rawJpegBlob, rect);
+        const jpegBlob = await applyScanFilterToJpeg(baseBlob, page.filter);
+        setPages((prev) =>
+          prev.map((p) => {
+            if (p.id !== id) return p;
+            URL.revokeObjectURL(p.previewUrl);
+            return {
+              ...p,
+              baseBlob,
+              docDetected: false,
+              manualCrop: true,
+              jpegBlob,
+              previewUrl: URL.createObjectURL(jpegBlob),
+            };
+          }),
+        );
+        closeManualCropDialog();
+      } catch {
+        setCameraError("Gagal menerapkan crop manual.");
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [manualCropTargetId, closeManualCropDialog],
+  );
 
   const move = (id: string, dir: -1 | 1) => {
     setPages((prev) => {
@@ -332,6 +394,14 @@ export function ScanWorkspace() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+      {manualCropObjectUrl && manualCropTargetId ? (
+        <ManualCropDialog
+          key={manualCropTargetId}
+          imageUrl={manualCropObjectUrl}
+          onClose={closeManualCropDialog}
+          onApply={(rect) => void applyManualCrop(rect)}
+        />
+      ) : null}
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Scanner</h1>
@@ -485,6 +555,11 @@ export function ScanWorkspace() {
                             Kertas
                           </Badge>
                         ) : null}
+                        {p.manualCrop ? (
+                          <Badge variant="outline" className="h-4 px-1 text-[0.6rem] font-normal">
+                            Manual
+                          </Badge>
+                        ) : null}
                       </span>
                       <span className="flex flex-wrap gap-1">
                         <Button
@@ -572,22 +647,37 @@ export function ScanWorkspace() {
                     <div>
                       <p className="text-xs font-medium text-foreground">Filter tampilan</p>
                       <p className="text-[0.65rem] text-muted-foreground">
-                        {activePage.docDetected
-                          ? "Kertas terdeteksi; Anda bisa mengganti gaya di bawah."
-                          : "Tidak ada crop otomatis; coba tombol crop ulang di atas atau foto lebih dekat."}
+                        {activePage.manualCrop
+                          ? "Crop manual aktif; crop ulang memakai auto crop dari gambar asli."
+                          : activePage.docDetected
+                            ? "Kertas terdeteksi; Anda bisa mengganti gaya di bawah."
+                            : "Tidak ada crop otomatis; gunakan crop manual atau crop ulang."}
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 shrink-0 gap-1.5 text-xs"
-                      disabled={processing}
-                      onClick={() => void reprocessActivePage()}
-                    >
-                      <RefreshCw className="size-3.5" aria-hidden />
-                      Crop &amp; filter ulang
-                    </Button>
+                    <div className="flex shrink-0 flex-wrap gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs"
+                        disabled={processing}
+                        onClick={openManualCrop}
+                      >
+                        <Crop className="size-3.5" aria-hidden />
+                        Crop manual
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs"
+                        disabled={processing}
+                        onClick={() => void reprocessActivePage()}
+                      >
+                        <RefreshCw className="size-3.5" aria-hidden />
+                        Crop &amp; filter ulang
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {SCAN_FILTER_OPTIONS.map((opt) => (
