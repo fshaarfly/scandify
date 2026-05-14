@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Scandify
 
-## Getting Started
+Aplikasi web untuk memindai dokumen di peramban: ambil foto dari kamera atau unggah gambar, rapikan tampilan, lalu gabungkan halaman menjadi satu PDF. Landing, formulir early access, dan halaman legal (kontak, privasi, syarat) disertakan.
 
-First, run the development server:
+## Teknologi
+
+- [Next.js](https://nextjs.org) 16 (App Router), React 19, TypeScript
+- [Tailwind CSS](https://tailwindcss.com) 4
+- [scanic](https://www.npmjs.com/package/scanic) — pemrosesan gambar / perspektif di klien
+- [pdf-lib](https://pdf-lib.js.org/) — penyusunan PDF
+- Komponen UI: Radix, shadcn, lucide-react, next-themes
+
+## Menjalankan lokal
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000). Halaman scanner: [http://localhost:3000/scan](http://localhost:3000/scan).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Perintah lain:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build   # build produksi
+npm run start   # jalankan server setelah build
+npm run lint    # ESLint
+```
 
-## Learn More
+## Struktur singkat
 
-To learn more about Next.js, take a look at the following resources:
+| Rute | Isi |
+|------|-----|
+| `/` | Landing, fitur, FAQ, formulir early access |
+| `/scan` | Ruang kerja scan (kamera / unggah, urutan halaman, unduh PDF) |
+| `/kontak`, `/privasi`, `/syarat` | Halaman informasi |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Komponen utama ada di `components/` (mis. `scan-workspace.tsx`, `early-access-form.tsx`). Server action early access: `app/actions/early-access.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Early access (opsional)
 
-## Deploy on Vercel
+Formulir di beranda dapat mengirim email ke salah satu saluran berikut — konfigurasi lewat variabel lingkungan:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variabel | Fungsi |
+|----------|--------|
+| `EARLY_ACCESS_WEBHOOK_URL` | Webhook (mis. Discord) untuk notifikasi |
+| `RESEND_API_KEY` + `EARLY_ACCESS_NOTIFY_EMAIL` | Email lewat [Resend](https://resend.com) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Jika tidak ada yang diatur di lingkungan produksi, pastikan salah satu saluran tersedia. Untuk pengembangan lokal (`npm run dev`), tanpa webhook/Resend, pendaftaran ditulis ke `data/early-access.jsonl` (folder `data/` dibuat otomatis; file ini diabaikan Git).
+
+## Lisensi & kontribusi
+
+Proyek ini bersifat privat (`private` di `package.json`). Sesuaikan bagian ini jika repositori dibuka untuk kontribusi publik.
