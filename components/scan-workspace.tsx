@@ -92,6 +92,8 @@ export function ScanWorkspace() {
   const [manualCropTargetId, setManualCropTargetId] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  /** Rasio frame stream (w/h) agar pratinjau tidak terpotong seperti kotak 16:9 + object-cover. */
+  const [cameraPreviewRatio, setCameraPreviewRatio] = useState<{ w: number; h: number } | null>(null);
   const pagesRef = useRef<ScanPage[]>([]);
   const autoCropRef = useRef(autoCropEnabled);
 
@@ -147,9 +149,27 @@ export function ScanWorkspace() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    setCameraPreviewRatio(null);
     setCameraOn(false);
     setCameraError(null);
   }, []);
+
+  const syncCameraPreviewAspect = useCallback(() => {
+    const v = videoRef.current;
+    if (!v?.videoWidth || !v?.videoHeight) return;
+    setCameraPreviewRatio({ w: v.videoWidth, h: v.videoHeight });
+  }, []);
+
+  useEffect(() => {
+    if (!cameraOn) return;
+    const onResize = () => syncCameraPreviewAspect();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, [cameraOn, syncCameraPreviewAspect]);
 
   /** Video hanya ada di DOM saat `cameraOn`; sambungkan stream setelah mount. */
   useEffect(() => {
@@ -505,15 +525,6 @@ export function ScanWorkspace() {
             ) : (
               <div className="space-y-2">
                 <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2"
-                  onClick={captureFrame}
-                  disabled={processing}
-                >
-                  <Camera className="size-4" aria-hidden />
-                  Ambil foto
-                </Button>
-                <Button
                   variant="ghost"
                   className="w-full justify-start gap-2 text-muted-foreground"
                   onClick={stopCamera}
@@ -625,17 +636,41 @@ export function ScanWorkspace() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Pratinjau kamera</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  Pegang dokumen stabil; tekan &quot;Ambil foto&quot; untuk menambah halaman.
+                  Pegang dokumen stabil; tombol besar di bawah pratinjau menambah halaman.
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-0 pb-0">
-                <video
-                  ref={videoRef}
-                  className="aspect-video w-full bg-black object-cover"
-                  playsInline
-                  muted
-                  autoPlay
-                />
+                <div
+                  className="relative w-full overflow-hidden bg-black"
+                  style={{
+                    aspectRatio: cameraPreviewRatio
+                      ? `${cameraPreviewRatio.w} / ${cameraPreviewRatio.h}`
+                      : "9 / 16",
+                  }}
+                >
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover"
+                    playsInline
+                    muted
+                    autoPlay
+                    onLoadedMetadata={syncCameraPreviewAspect}
+                    onResize={syncCameraPreviewAspect}
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-linear-to-t from-black/75 via-black/30 to-transparent px-4 pt-20 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="pointer-events-auto h-14 min-h-14 touch-manipulation gap-2 rounded-full px-10 text-base shadow-lg sm:h-16 sm:min-h-16 sm:px-12 sm:text-lg"
+                      onClick={() => void captureFrame()}
+                      disabled={processing}
+                      aria-label="Ambil foto"
+                    >
+                      <Camera className="size-6 shrink-0 sm:size-7" aria-hidden />
+                      Ambil foto
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ) : null}
