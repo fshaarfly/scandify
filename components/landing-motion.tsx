@@ -9,6 +9,8 @@ import {
 import type { ReactNode } from "react";
 import { useRef } from "react";
 
+import { cn } from "@/lib/utils";
+
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
 export function LandingHeroBackdrop() {
@@ -49,10 +51,16 @@ export function LandingHeroBackdrop() {
   );
 }
 
-export function LandingHeroStagger({ children }: { children: ReactNode }) {
+export function LandingHeroStagger({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div
-      className="flex flex-col items-center text-center"
+      className={cn("flex flex-col items-center text-center", className)}
       initial="hidden"
       animate="show"
       variants={{

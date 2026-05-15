@@ -4,20 +4,14 @@ import {
   Check,
   FileDown,
   ScanLine,
-  Shield,
   Sparkles,
 } from "lucide-react";
 
-import { DemoBeforeAfter } from "@/components/demo-before-after";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { LandingFaq } from "@/components/landing-faq";
+import { LandingHero } from "@/components/landing-hero";
 import {
-  LandingHeroBackdrop,
-  LandingHeroInteractiveSection,
-  LandingHeroStagger,
   LandingMotionCard,
-  LandingMotionItem,
-  LandingPressable,
   LandingScrollReveal,
   LandingStaggerChild,
   LandingStaggerGrid,
@@ -178,93 +172,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <LandingHeroInteractiveSection className="relative overflow-hidden border-b border-border/80 px-4 py-20 sm:px-6 sm:py-28">
-          <LandingHeroBackdrop />
-          <div className="mx-auto max-w-6xl">
-            <LandingHeroStagger>
-              <LandingMotionItem>
-                <Badge
-                  variant="secondary"
-                  className="mb-6 rounded-full border border-border/80 bg-card/80 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-sm"
-                >
-                  <Sparkles className="size-3" aria-hidden />
-                  Scan dokumen di browser
-                </Badge>
-              </LandingMotionItem>
-              <LandingMotionItem>
-                <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl sm:leading-tight md:text-6xl md:leading-[1.06]">
-                  Dokumen rapi jadi PDF.
-                  <span className="mt-1 block bg-linear-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent dark:from-white dark:via-zinc-200 dark:to-primary">
-                    Tanpa aplikasi tambahan.
-                  </span>
-                </h1>
-              </LandingMotionItem>
-              <LandingMotionItem>
-                <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">
-                  Scandify membantu Anda memfoto kertas, merapikan tampilan, dan mengekspor PDF — alur
-                  sederhana, tampilan modern, siap untuk pekerjaan harian.
-                </p>
-              </LandingMotionItem>
-              <LandingMotionItem className="mt-10 flex flex-col flex-wrap items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-                <LandingPressable className="inline-flex justify-center">
-                  <Button size="lg" className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20" asChild>
-                    <Link href="#early-access">Gabung early access</Link>
-                  </Button>
-                </LandingPressable>
-                <LandingPressable className="inline-flex justify-center">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    className="h-12 min-w-[200px] rounded-full px-8 shadow-sm"
-                    asChild
-                  >
-                    <Link href="/scan">Buka scanner</Link>
-                  </Button>
-                </LandingPressable>
-                <LandingPressable className="inline-flex justify-center">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-12 min-w-[200px] rounded-full border-border/80 bg-card/60 px-8 backdrop-blur-sm"
-                    asChild
-                  >
-                    <Link href="#cara-kerja">Lihat cara kerja</Link>
-                  </Button>
-                </LandingPressable>
-              </LandingMotionItem>
-              <LandingMotionItem className="mx-auto mt-16 w-full max-w-3xl">
-                <Card
-                  id="demo-placeholder"
-                  className="overflow-hidden border-border/80 bg-card/70 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40"
-                >
-              <div className="relative border-b border-border/60 bg-linear-to-br from-primary/10 via-transparent to-accent-muted/30 px-4 py-8 sm:px-10 sm:py-10">
-                <div className="absolute right-4 top-6 sm:right-6">
-                  <Badge variant="outline" className="rounded-full">
-                    Pratinjau
-                  </Badge>
-                </div>
-                <div className="mx-auto flex max-w-lg flex-col items-center pt-8 text-center sm:pt-2">
-                  <CardTitle className="text-lg sm:text-xl">Sebelum &amp; sesudah</CardTitle>
-                  <CardDescription className="mt-2 max-w-md text-base">
-                    Contoh foto dokumen dari ponsel — geser untuk melihat perbedaan.
-                  </CardDescription>
-                  <div className="mt-8 w-full">
-                    <DemoBeforeAfter />
-                  </div>
-                </div>
-              </div>
-              <CardFooter className="flex flex-wrap items-center justify-center gap-3 border-border/60 bg-muted/30 py-4 text-xs text-muted-foreground sm:justify-between sm:text-sm">
-                <span className="inline-flex items-center gap-2">
-                  <Shield className="size-4 text-primary" aria-hidden />
-                  Privasi-by-design (roadmap)
-                </span>
-                <span className="hidden sm:inline">PDF · multi-halaman · pratinjau</span>
-                </CardFooter>
-              </Card>
-              </LandingMotionItem>
-            </LandingHeroStagger>
-          </div>
-        </LandingHeroInteractiveSection>
+        <LandingHero />
 
         <section id="fitur" className="scroll-mt-20 border-b border-border/80 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
