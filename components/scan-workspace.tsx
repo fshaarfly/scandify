@@ -16,7 +16,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 
 import { ManualCropDialog } from "@/components/manual-crop-dialog";
 import { buildScanPdfFromJpegs } from "@/lib/build-scan-pdf";
-import { cropJpegBlob } from "@/lib/crop-jpeg";
+import { homographyWarpJpegBlob, type QuadCropPixels } from "@/lib/homography-warp-jpeg";
 import { extractDocumentJpeg } from "@/lib/document-scan";
 import { applyScanFilterToJpeg, SCAN_FILTER_OPTIONS, type ScanFilterId } from "@/lib/scan-filters";
 import { Badge } from "@/components/ui/badge";
@@ -355,7 +355,7 @@ export function ScanWorkspace() {
   }, [selectedId]);
 
   const applyManualCrop = useCallback(
-    async (rect: { sx: number; sy: number; sw: number; sh: number }) => {
+    async (crop: QuadCropPixels) => {
       const id = manualCropTargetId;
       if (!id) return;
       const page = pagesRef.current.find((p) => p.id === id);
@@ -363,7 +363,7 @@ export function ScanWorkspace() {
       setProcessing(true);
       setCameraError(null);
       try {
-        const baseBlob = await cropJpegBlob(page.rawJpegBlob, rect);
+        const baseBlob = await homographyWarpJpegBlob(page.rawJpegBlob, crop);
         const jpegBlob = await applyScanFilterToJpeg(baseBlob, page.filter);
         setPages((prev) =>
           prev.map((p) => {
@@ -427,7 +427,7 @@ export function ScanWorkspace() {
           key={manualCropTargetId}
           imageUrl={manualCropObjectUrl}
           onClose={closeManualCropDialog}
-          onApply={(rect) => void applyManualCrop(rect)}
+          onApply={(crop) => void applyManualCrop(crop)}
         />
       ) : null}
       <div className="flex flex-col gap-2">
@@ -691,7 +691,7 @@ export function ScanWorkspace() {
                       <p className="text-xs font-medium text-foreground">Filter tampilan</p>
                       <p className="text-[0.65rem] text-muted-foreground">
                         {activePage.manualCrop
-                          ? "Crop manual aktif; crop ulang memakai auto crop dari gambar asli."
+                          ? "Crop manual (empat sudut) aktif; crop ulang memakai auto crop dari gambar asli."
                           : activePage.docDetected
                             ? "Kertas terdeteksi; Anda bisa mengganti gaya di bawah."
                             : "Tidak ada crop otomatis; gunakan crop manual atau crop ulang."}
