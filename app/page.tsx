@@ -11,6 +11,17 @@ import {
 import { DemoBeforeAfter } from "@/components/demo-before-after";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { LandingFaq } from "@/components/landing-faq";
+import {
+  LandingHeroBackdrop,
+  LandingHeroInteractiveSection,
+  LandingHeroStagger,
+  LandingMotionCard,
+  LandingMotionItem,
+  LandingPressable,
+  LandingScrollReveal,
+  LandingStaggerChild,
+  LandingStaggerGrid,
+} from "@/components/landing-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -119,19 +130,6 @@ const faq = [
   },
 ];
 
-function HeroBackdrop() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-      aria-hidden
-    >
-      <div className="absolute -left-40 top-[-10%] h-[min(100vw,28rem)] w-[min(100vw,28rem)] rounded-full bg-primary/25 blur-[100px] dark:bg-primary/30" />
-      <div className="absolute -right-32 top-[20%] h-[min(90vw,24rem)] w-[min(90vw,24rem)] rounded-full bg-accent-muted/90 blur-[90px] dark:bg-accent-muted/50" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(24_24_27/0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgb(24_24_27/0.06)_1px,transparent_1px)] bg-size-[52px_52px] mask-[radial-gradient(ellipse_70%_55%_at_50%_-5%,#000_50%,transparent)] dark:bg-[linear-gradient(to_right,rgb(255_255_255/0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.05)_1px,transparent_1px)]" />
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <div className="flex min-h-full flex-col">
@@ -180,54 +178,65 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border/80 px-4 py-20 sm:px-6 sm:py-28">
-          <HeroBackdrop />
+        <LandingHeroInteractiveSection className="relative overflow-hidden border-b border-border/80 px-4 py-20 sm:px-6 sm:py-28">
+          <LandingHeroBackdrop />
           <div className="mx-auto max-w-6xl">
-            <div className="flex flex-col items-center text-center">
-              <Badge
-                variant="secondary"
-                className="mb-6 rounded-full border border-border/80 bg-card/80 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-sm"
-              >
-                <Sparkles className="size-3" aria-hidden />
-                Scan dokumen di browser
-              </Badge>
-              <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl sm:leading-tight md:text-6xl md:leading-[1.06]">
-                Dokumen rapi jadi PDF.
-                <span className="mt-1 block bg-linear-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent dark:from-white dark:via-zinc-200 dark:to-primary">
-                  Tanpa aplikasi tambahan.
-                </span>
-              </h1>
-              <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">
-                Scandify membantu Anda memfoto kertas, merapikan tampilan, dan mengekspor PDF — alur
-                sederhana, tampilan modern, siap untuk pekerjaan harian.
-              </p>
-              <div className="mt-10 flex flex-col flex-wrap items-stretch justify-center gap-3 sm:flex-row sm:items-center">
-                <Button size="lg" className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20" asChild>
-                  <Link href="#early-access">Gabung early access</Link>
-                </Button>
-                <Button
-                  size="lg"
+            <LandingHeroStagger>
+              <LandingMotionItem>
+                <Badge
                   variant="secondary"
-                  className="h-12 min-w-[200px] rounded-full px-8 shadow-sm"
-                  asChild
+                  className="mb-6 rounded-full border border-border/80 bg-card/80 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-sm"
                 >
-                  <Link href="/scan">Buka scanner</Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 min-w-[200px] rounded-full border-border/80 bg-card/60 px-8 backdrop-blur-sm"
-                  asChild
+                  <Sparkles className="size-3" aria-hidden />
+                  Scan dokumen di browser
+                </Badge>
+              </LandingMotionItem>
+              <LandingMotionItem>
+                <h1 className="max-w-4xl text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl sm:leading-tight md:text-6xl md:leading-[1.06]">
+                  Dokumen rapi jadi PDF.
+                  <span className="mt-1 block bg-linear-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent dark:from-white dark:via-zinc-200 dark:to-primary">
+                    Tanpa aplikasi tambahan.
+                  </span>
+                </h1>
+              </LandingMotionItem>
+              <LandingMotionItem>
+                <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">
+                  Scandify membantu Anda memfoto kertas, merapikan tampilan, dan mengekspor PDF — alur
+                  sederhana, tampilan modern, siap untuk pekerjaan harian.
+                </p>
+              </LandingMotionItem>
+              <LandingMotionItem className="mt-10 flex flex-col flex-wrap items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+                <LandingPressable className="inline-flex justify-center">
+                  <Button size="lg" className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20" asChild>
+                    <Link href="#early-access">Gabung early access</Link>
+                  </Button>
+                </LandingPressable>
+                <LandingPressable className="inline-flex justify-center">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="h-12 min-w-[200px] rounded-full px-8 shadow-sm"
+                    asChild
+                  >
+                    <Link href="/scan">Buka scanner</Link>
+                  </Button>
+                </LandingPressable>
+                <LandingPressable className="inline-flex justify-center">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 min-w-[200px] rounded-full border-border/80 bg-card/60 px-8 backdrop-blur-sm"
+                    asChild
+                  >
+                    <Link href="#cara-kerja">Lihat cara kerja</Link>
+                  </Button>
+                </LandingPressable>
+              </LandingMotionItem>
+              <LandingMotionItem className="mx-auto mt-16 w-full max-w-3xl">
+                <Card
+                  id="demo-placeholder"
+                  className="overflow-hidden border-border/80 bg-card/70 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40"
                 >
-                  <Link href="#cara-kerja">Lihat cara kerja</Link>
-                </Button>
-              </div>
-            </div>
-
-            <Card
-              id="demo-placeholder"
-              className="mx-auto mt-16 max-w-3xl overflow-hidden border-border/80 bg-card/70 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40"
-            >
               <div className="relative border-b border-border/60 bg-linear-to-br from-primary/10 via-transparent to-accent-muted/30 px-4 py-8 sm:px-10 sm:py-10">
                 <div className="absolute right-4 top-6 sm:right-6">
                   <Badge variant="outline" className="rounded-full">
@@ -250,14 +259,16 @@ export default function Home() {
                   Privasi-by-design (roadmap)
                 </span>
                 <span className="hidden sm:inline">PDF · multi-halaman · pratinjau</span>
-              </CardFooter>
-            </Card>
+                </CardFooter>
+              </Card>
+              </LandingMotionItem>
+            </LandingHeroStagger>
           </div>
-        </section>
+        </LandingHeroInteractiveSection>
 
         <section id="fitur" className="scroll-mt-20 border-b border-border/80 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
-            <div className="mx-auto max-w-2xl text-center">
+            <LandingScrollReveal className="mx-auto max-w-2xl text-center">
               <Badge variant="secondary" className="mb-4 rounded-full">
                 Fitur inti
               </Badge>
@@ -267,78 +278,83 @@ export default function Home() {
               <p className="mt-4 text-muted-foreground">
                 Tiga pilar produk — dari input gambar hingga file PDF yang rapi.
               </p>
-            </div>
-            <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            </LandingScrollReveal>
+            <LandingStaggerGrid className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {fitur.map((item) => (
-                <li key={item.title}>
-                  <Card className="group h-full border-border/80 bg-card/80 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
-                    <CardHeader className="gap-4">
-                      <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15 transition-colors group-hover:bg-primary/15">
-                        <item.Icon className="size-5" aria-hidden />
-                      </div>
-                      <CardTitle className="text-lg">{item.title}</CardTitle>
-                      <CardDescription className="text-sm leading-relaxed">
-                        {item.body}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                </li>
+                <LandingStaggerChild key={item.title} className="min-w-0">
+                  <LandingMotionCard className="h-full">
+                    <Card className="group h-full border-border/80 bg-card/80 shadow-sm transition-colors duration-300 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5">
+                      <CardHeader className="gap-4">
+                        <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15 transition-colors group-hover:bg-primary/15">
+                          <item.Icon className="size-5" aria-hidden />
+                        </div>
+                        <CardTitle className="text-lg">{item.title}</CardTitle>
+                        <CardDescription className="text-sm leading-relaxed">
+                          {item.body}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </LandingMotionCard>
+                </LandingStaggerChild>
               ))}
-            </ul>
+            </LandingStaggerGrid>
           </div>
         </section>
 
         <section id="cara-kerja" className="scroll-mt-20 border-b border-border/80 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
-            <div className="mx-auto max-w-2xl text-center">
+            <LandingScrollReveal className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Cara kerja
               </h2>
               <p className="mt-4 text-muted-foreground">
                 Tiga langkah singkat — cepat dipahami, mudah diingat.
               </p>
-            </div>
-            <ol className="mt-14 grid gap-6 sm:grid-cols-3">
+            </LandingScrollReveal>
+            <LandingStaggerGrid className="mt-14 grid gap-6 sm:grid-cols-3">
               {langkah.map((item) => (
-                <li key={item.no}>
-                  <Card className="h-full border-border/80 bg-muted/20 text-center shadow-none ring-1 ring-border/60 transition-colors hover:bg-muted/35">
-                    <CardContent className="flex flex-col items-center gap-4 pt-8 pb-8">
-                      <div className="flex size-12 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-md shadow-primary/25">
-                        {item.no}
-                      </div>
-                      <div className="flex size-10 items-center justify-center rounded-lg bg-card text-primary ring-1 ring-border/80">
-                        <item.Icon className="size-5" aria-hidden />
-                      </div>
-                      <CardTitle className="text-base">{item.title}</CardTitle>
-                      <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
-                    </CardContent>
-                  </Card>
-                </li>
+                <LandingStaggerChild key={item.no} className="min-w-0">
+                  <LandingMotionCard className="h-full">
+                    <Card className="h-full border-border/80 bg-muted/20 text-center shadow-none ring-1 ring-border/60 transition-colors hover:bg-muted/35">
+                      <CardContent className="flex flex-col items-center gap-4 pt-8 pb-8">
+                        <div className="flex size-12 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-md shadow-primary/25">
+                          {item.no}
+                        </div>
+                        <div className="flex size-10 items-center justify-center rounded-lg bg-card text-primary ring-1 ring-border/80">
+                          <item.Icon className="size-5" aria-hidden />
+                        </div>
+                        <CardTitle className="text-base">{item.title}</CardTitle>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+                      </CardContent>
+                    </Card>
+                  </LandingMotionCard>
+                </LandingStaggerChild>
               ))}
-            </ol>
+            </LandingStaggerGrid>
           </div>
         </section>
 
         <section id="harga" className="scroll-mt-20 border-b border-border/80 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-6xl">
-            <div className="mx-auto max-w-2xl text-center">
+            <LandingScrollReveal className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Harga placeholder
               </h2>
               <p className="mt-4 text-muted-foreground">
                 Angka di bawah contoh — akan disesuaikan setelah model bisnis final.
               </p>
-            </div>
-            <ul className="mt-14 grid gap-6 lg:grid-cols-3">
+            </LandingScrollReveal>
+            <LandingStaggerGrid className="mt-14 grid gap-6 lg:grid-cols-3">
               {paket.map((p) => (
-                <li key={p.name}>
-                  <Card
-                    className={cn(
-                      "relative flex h-full flex-col overflow-hidden border-border/80 bg-card/90 transition-all duration-300 hover:shadow-lg",
-                      p.highlight &&
-                        "border-primary/40 shadow-lg shadow-primary/10 ring-2 ring-primary/25 dark:shadow-primary/20",
-                    )}
-                  >
+                <LandingStaggerChild key={p.name} className="min-w-0">
+                  <LandingMotionCard className="h-full">
+                    <Card
+                      className={cn(
+                        "relative flex h-full flex-col overflow-hidden border-border/80 bg-card/90 transition-shadow duration-300 hover:shadow-lg",
+                        p.highlight &&
+                          "border-primary/40 shadow-lg shadow-primary/10 ring-2 ring-primary/25 dark:shadow-primary/20",
+                      )}
+                    >
                     {p.highlight ? (
                       <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-primary to-accent-muted" />
                     ) : null}
@@ -385,20 +401,23 @@ export default function Home() {
                       </Button>
                     </CardFooter>
                   </Card>
-                </li>
+                  </LandingMotionCard>
+                </LandingStaggerChild>
               ))}
-            </ul>
+            </LandingStaggerGrid>
           </div>
         </section>
 
         <section id="faq" className="scroll-mt-20 border-b border-border/80 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Pertanyaan umum
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-center text-muted-foreground">
-              Jawaban singkat — detail legal menyusul bersama peluncuran beta.
-            </p>
+            <LandingScrollReveal>
+              <h2 className="text-center text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Pertanyaan umum
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-center text-muted-foreground">
+                Jawaban singkat — detail legal menyusul bersama peluncuran beta.
+              </p>
+            </LandingScrollReveal>
             <div className="mt-10">
               <LandingFaq items={faq} />
             </div>
@@ -407,23 +426,27 @@ export default function Home() {
 
         <section id="early-access" className="scroll-mt-20 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-3xl">
-            <Card className="overflow-hidden border-border/80 bg-card/90 text-center shadow-xl shadow-black/5 dark:shadow-black/30">
-              <div className="bg-linear-to-br from-primary/15 via-card to-accent-muted/20 px-8 py-14 sm:px-12">
-                <Badge variant="secondary" className="mb-4 rounded-full">
-                  Early access
-                </Badge>
-                <CardTitle className="text-2xl sm:text-3xl">
-                  Siap merapikan dokumen berikutnya?
-                </CardTitle>
-                <CardDescription className="mx-auto mt-3 max-w-lg text-base">
-                  Daftarkan email Anda — kami kabari saat beta dibuka. Tanpa spam; autentikasi akun
-                  menyusul bersama integrasi cloud opsional.
-                </CardDescription>
-                <div className="mx-auto flex w-full justify-center">
-                  <EarlyAccessForm />
-                </div>
-              </div>
-            </Card>
+            <LandingScrollReveal>
+              <LandingMotionCard>
+                <Card className="overflow-hidden border-border/80 bg-card/90 text-center shadow-xl shadow-black/5 dark:shadow-black/30">
+                  <div className="bg-linear-to-br from-primary/15 via-card to-accent-muted/20 px-8 py-14 sm:px-12">
+                    <Badge variant="secondary" className="mb-4 rounded-full">
+                      Early access
+                    </Badge>
+                    <CardTitle className="text-2xl sm:text-3xl">
+                      Siap merapikan dokumen berikutnya?
+                    </CardTitle>
+                    <CardDescription className="mx-auto mt-3 max-w-lg text-base">
+                      Daftarkan email Anda — kami kabari saat beta dibuka. Tanpa spam; autentikasi akun
+                      menyusul bersama integrasi cloud opsional.
+                    </CardDescription>
+                    <div className="mx-auto flex w-full justify-center">
+                      <EarlyAccessForm />
+                    </div>
+                  </div>
+                </Card>
+              </LandingMotionCard>
+            </LandingScrollReveal>
           </div>
         </section>
       </main>
