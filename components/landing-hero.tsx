@@ -108,13 +108,23 @@ export function LandingHero() {
             </LandingMotionItem>
             <LandingMotionItem className="mt-10 flex w-full flex-col flex-wrap items-stretch justify-center gap-3 sm:flex-row sm:items-center lg:justify-start">
               <LandingPressable className="inline-flex justify-center lg:justify-start">
-                <Button
-                  size="lg"
-                  className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20"
-                  asChild
-                >
-                  <Link href="/login">Masuk</Link>
-                </Button>
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button
+                    size="lg"
+                    className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20"
+                    asChild
+                  >
+                    <Link href="/login">Masuk</Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 min-w-[200px] rounded-full border-border/80 bg-card/60 px-8 backdrop-blur-sm"
+                    asChild
+                  >
+                    <Link href="/register">Daftar</Link>
+                  </Button>
+                </div>
               </LandingPressable>
               <LandingPressable className="inline-flex justify-center lg:justify-start">
                 <Button

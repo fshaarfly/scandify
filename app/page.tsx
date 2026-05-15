@@ -59,7 +59,7 @@ const langkah = [
   {
     no: "1",
     title: "Buka Scandify",
-    body: "Buka /login bila sudah punya akun (Supabase menyusul); siapkan dokumen atau pegang stabil saat memotret.",
+    body: "Daftar di /register atau masuk di /login; scanner juga bisa dipakai tanpa akun.",
     Icon: Sparkles,
   },
   {
@@ -148,6 +148,14 @@ export default function Home() {
             </nav>
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <ThemeToggle />
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-full px-3 text-muted-foreground hover:text-foreground sm:px-4"
+                asChild
+              >
+                <Link href="/register">Daftar</Link>
+              </Button>
               <Button size="lg" className="rounded-full px-5 shadow-sm" asChild>
                 <Link href="/login">Masuk</Link>
               </Button>
@@ -341,20 +349,28 @@ export default function Home() {
                       Akun
                     </Badge>
                     <CardTitle className="text-2xl sm:text-3xl">
-                      Masuk untuk melanjutkan nanti
+                      Akun untuk sinkronisasi nanti
                     </CardTitle>
                     <CardDescription className="mx-auto mt-3 max-w-lg text-base">
-                      Halaman login siap dihubungkan ke Supabase (sesi, profil, dan opsi cloud). Scanner
-                      tetap dapat dipakai tanpa akun lewat tautan di bawah.
+                      Login dan daftar memakai Supabase Auth. Scanner tetap bisa dipakai tanpa akun lewat
+                      tautan di bawah.
                     </CardDescription>
-                    <div className="mx-auto mt-8 flex w-full max-w-md flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+                    <div className="mx-auto mt-8 flex w-full max-w-md flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
                       <Button size="lg" className="h-12 rounded-full px-8 shadow-md shadow-primary/20" asChild>
-                        <Link href="/login">Buka login</Link>
+                        <Link href="/login">Masuk</Link>
                       </Button>
                       <Button
                         size="lg"
                         variant="secondary"
                         className="h-12 rounded-full px-8 shadow-sm"
+                        asChild
+                      >
+                        <Link href="/register">Daftar</Link>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="h-12 rounded-full border-border/80 px-8"
                         asChild
                       >
                         <Link href="/scan">Buka scanner</Link>

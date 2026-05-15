@@ -10,7 +10,11 @@ export const metadata: Metadata = {
   description: "Masuk ke akun Scandify dengan email dan kata sandi (Supabase Auth).",
 };
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<{ error?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,10 +23,16 @@ export default async function LoginPage() {
     redirect("/scan");
   }
 
+  const q = searchParams ? await searchParams : {};
+  const linkError =
+    q.error === "callback"
+      ? "Tautan masuk tidak valid atau sudah kedaluwarsa. Minta tautan baru atau coba masuk dengan email dan kata sandi."
+      : null;
+
   return (
     <StaticPageShell>
       <div className="mx-auto max-w-md">
-        <LoginForm />
+        <LoginForm linkError={linkError} />
       </div>
     </StaticPageShell>
   );
