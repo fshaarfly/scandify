@@ -7,7 +7,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { EarlyAccessForm } from "@/components/early-access-form";
 import { LandingFaq } from "@/components/landing-faq";
 import { LandingHero } from "@/components/landing-hero";
 import {
@@ -60,7 +59,7 @@ const langkah = [
   {
     no: "1",
     title: "Buka Scandify",
-    body: "Login menyusul; siapkan dokumen di meja atau pegang stabil saat memotret.",
+    body: "Buka /login bila sudah punya akun (Supabase menyusul); siapkan dokumen atau pegang stabil saat memotret.",
     Icon: Sparkles,
   },
   {
@@ -120,7 +119,7 @@ const faq = [
   },
   {
     q: "Kapan bisa dipakai?",
-    a: "Ini halaman awal produk. Daftar early access lewat tombol di bawah; kami kabari saat beta siap.",
+    a: "Scanner di /scan sudah bisa dicoba. Akun login akan menyusul lewat Supabase untuk sinkronisasi dan fitur berlangganan.",
   },
 ];
 
@@ -150,7 +149,7 @@ export default function Home() {
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <ThemeToggle />
               <Button size="lg" className="rounded-full px-5 shadow-sm" asChild>
-                <Link href="#early-access">Early access</Link>
+                <Link href="/login">Masuk</Link>
               </Button>
             </div>
           </div>
@@ -303,7 +302,7 @@ export default function Home() {
                         variant={p.highlight ? "default" : "outline"}
                         asChild
                       >
-                        <Link href="#early-access">
+                        <Link href={p.name === "Studio" ? "/kontak" : "/login"}>
                           {p.name === "Studio" ? "Hubungi kami" : "Pilih paket"}
                         </Link>
                       </Button>
@@ -332,24 +331,34 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="early-access" className="scroll-mt-20 px-4 py-20 sm:px-6 sm:py-24">
+        <section id="masuk" className="scroll-mt-20 px-4 py-20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-3xl">
             <LandingScrollReveal>
               <LandingMotionCard>
                 <Card className="overflow-hidden border-border/80 bg-card/90 text-center shadow-xl shadow-black/5 dark:shadow-black/30">
                   <div className="bg-linear-to-br from-primary/15 via-card to-accent-muted/20 px-8 py-14 sm:px-12">
                     <Badge variant="secondary" className="mb-4 rounded-full">
-                      Early access
+                      Akun
                     </Badge>
                     <CardTitle className="text-2xl sm:text-3xl">
-                      Siap merapikan dokumen berikutnya?
+                      Masuk untuk melanjutkan nanti
                     </CardTitle>
                     <CardDescription className="mx-auto mt-3 max-w-lg text-base">
-                      Daftarkan email Anda — kami kabari saat beta dibuka. Tanpa spam; autentikasi akun
-                      menyusul bersama integrasi cloud opsional.
+                      Halaman login siap dihubungkan ke Supabase (sesi, profil, dan opsi cloud). Scanner
+                      tetap dapat dipakai tanpa akun lewat tautan di bawah.
                     </CardDescription>
-                    <div className="mx-auto flex w-full justify-center">
-                      <EarlyAccessForm />
+                    <div className="mx-auto mt-8 flex w-full max-w-md flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+                      <Button size="lg" className="h-12 rounded-full px-8 shadow-md shadow-primary/20" asChild>
+                        <Link href="/login">Buka login</Link>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="h-12 rounded-full px-8 shadow-sm"
+                        asChild
+                      >
+                        <Link href="/scan">Buka scanner</Link>
+                      </Button>
                     </div>
                   </div>
                 </Card>

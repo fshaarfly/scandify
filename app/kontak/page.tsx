@@ -52,13 +52,13 @@ export default function KontakPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-base font-semibold text-foreground sm:text-lg">Early access</h2>
+          <h2 className="text-base font-semibold text-foreground sm:text-lg">Akun &amp; login</h2>
           <p>
-            Untuk mendaftar beta, gunakan formulir di{" "}
-            <Link href="/#early-access" className="font-medium text-foreground underline-offset-4 hover:underline">
-              beranda
-            </Link>{" "}
-            (bagian pendaftaran email).
+            Untuk masuk ke akun (penyambungan Supabase menyusul), buka{" "}
+            <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
+              halaman login
+            </Link>
+            .
           </p>
         </section>
       </article>

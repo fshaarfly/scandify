@@ -3,6 +3,7 @@
 import {
   motion,
   useMotionValue,
+  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
@@ -14,39 +15,122 @@ import { cn } from "@/lib/utils";
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
 export function LandingHeroBackdrop() {
+  /** Hanya matikan animasi saat preferensi aksesibilitas benar-benar aktif (bukan `null` saat SSR). */
+  const reduceMotion = useReducedMotion() === true;
+
   return (
     <div
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       aria-hidden
     >
+      {/* Soft base wash */}
+      <div className="absolute inset-0 bg-linear-to-b from-primary/[0.07] via-transparent to-accent-muted/[0.06] dark:from-primary/[0.12] dark:to-accent-muted/[0.08]" />
+
+      {/* Slow aurora / mesh spin */}
       <motion.div
-        className="absolute -left-40 top-[-10%] h-[min(100vw,28rem)] w-[min(100vw,28rem)] rounded-full bg-primary/25 blur-[100px] dark:bg-primary/30"
-        animate={{
-          x: [0, 24, 0],
-          y: [0, 18, 0],
-          scale: [1, 1.06, 1],
+        className="absolute left-1/2 top-1/2 h-[160%] min-h-[48rem] w-[160%] min-w-[48rem] -translate-x-1/2 -translate-y-1/2 opacity-[0.55] dark:opacity-40"
+        style={{
+          background:
+            "conic-gradient(from 200deg at 50% 45%, oklch(0.52 0.19 160 / 0.14), transparent 28%, oklch(0.72 0.12 200 / 0.08), transparent 52%, oklch(0.55 0.14 145 / 0.1), transparent 78%)",
         }}
+        animate={reduceMotion ? undefined : { rotate: [0, 360] }}
+        transition={
+          reduceMotion
+            ? undefined
+            : { duration: 72, repeat: Number.POSITIVE_INFINITY, ease: "linear" }
+        }
+      />
+
+      {/* Primary glow orb */}
+      <motion.div
+        className="absolute -left-40 top-[-10%] h-[min(100vw,30rem)] w-[min(100vw,30rem)] rounded-full bg-primary/22 blur-[100px] dark:bg-primary/28"
+        animate={
+          reduceMotion
+            ? { x: 0, y: 0, scale: 1 }
+            : {
+                x: [0, 32, -8, 0],
+                y: [0, 22, 10, 0],
+                scale: [1, 1.08, 1.04, 1],
+              }
+        }
         transition={{
-          duration: 14,
-          repeat: Number.POSITIVE_INFINITY,
+          duration: 16,
+          repeat: reduceMotion ? 0 : Number.POSITIVE_INFINITY,
           ease: "easeInOut",
         }}
       />
+      {/* Accent orb */}
       <motion.div
-        className="absolute -right-32 top-[20%] h-[min(90vw,24rem)] w-[min(90vw,24rem)] rounded-full bg-accent-muted/90 blur-[90px] dark:bg-accent-muted/50"
-        animate={{
-          x: [0, -20, 0],
-          y: [0, 28, 0],
-          scale: [1, 1.08, 1],
-        }}
+        className="absolute -right-32 top-[18%] h-[min(92vw,26rem)] w-[min(92vw,26rem)] rounded-full bg-accent-muted/85 blur-[92px] dark:bg-accent-muted/45"
+        animate={
+          reduceMotion
+            ? { x: 0, y: 0, scale: 1 }
+            : {
+                x: [0, -28, 8, 0],
+                y: [0, 32, 12, 0],
+                scale: [1, 1.1, 1.02, 1],
+              }
+        }
         transition={{
-          duration: 18,
-          repeat: Number.POSITIVE_INFINITY,
+          duration: 20,
+          repeat: reduceMotion ? 0 : Number.POSITIVE_INFINITY,
           ease: "easeInOut",
-          delay: 1.5,
+          delay: 1.2,
         }}
       />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgb(24_24_27/0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgb(24_24_27/0.06)_1px,transparent_1px)] bg-size-[52px_52px] mask-[radial-gradient(ellipse_70%_55%_at_50%_-5%,#000_50%,transparent)] dark:bg-[linear-gradient(to_right,rgb(255_255_255/0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.05)_1px,transparent_1px)]" />
+      {/* Deep bottom accent */}
+      <motion.div
+        className="absolute -bottom-24 left-[18%] h-[min(85vw,22rem)] w-[min(85vw,22rem)] rounded-full bg-primary/12 blur-[88px] dark:bg-accent-muted/25"
+        animate={
+          reduceMotion
+            ? { x: 0, y: 0, opacity: 0.88 }
+            : {
+                x: [0, 18, -14, 0],
+                y: [0, -16, 6, 0],
+                opacity: [0.75, 1, 0.85, 0.75],
+              }
+        }
+        transition={{
+          duration: 22,
+          repeat: reduceMotion ? 0 : Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+          delay: 0.6,
+        }}
+      />
+
+      {/* Diagonal light shimmer */}
+      <div
+        className={cn(
+          "absolute inset-0 mix-blend-soft-light dark:mix-blend-plus-lighter",
+          !reduceMotion && "animate-[landing-hero-shimmer_14s_ease-in-out_infinite]",
+        )}
+        style={{
+          background:
+            "linear-gradient(115deg, transparent 35%, oklch(0.99 0 0 / 0.06) 48%, oklch(0.52 0.19 160 / 0.08) 52%, transparent 65%)",
+        }}
+      />
+
+      {/* Drifting grid */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-[linear-gradient(to_right,rgb(24_24_27/0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgb(24_24_27/0.055)_1px,transparent_1px)] bg-size-[52px_52px] mask-[radial-gradient(ellipse_75%_60%_at_50%_-8%,#000_45%,transparent)] dark:bg-[linear-gradient(to_right,rgb(255_255_255/0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.045)_1px,transparent_1px)]",
+          !reduceMotion &&
+            "motion-safe:animate-[landing-hero-grid-drift_22s_ease-in-out_infinite]",
+        )}
+      />
+
+      {/* Subtle scan-line wash (on-brand) */}
+      {!reduceMotion ? (
+        <div className="absolute inset-0 overflow-hidden opacity-70 mask-[radial-gradient(ellipse_80%_65%_at_50%_40%,#000_30%,transparent_75%)]">
+          <div
+            className="absolute inset-x-0 top-0 h-[180%] animate-[landing-hero-scan-sweep_11s_ease-in-out_infinite] bg-[repeating-linear-gradient(180deg,transparent_0px,transparent_10px,oklch(0.52_0.19_160/0.04)_10px,oklch(0.52_0.19_160/0.04)_11px)] dark:bg-[repeating-linear-gradient(180deg,transparent_0px,transparent_10px,oklch(0.62_0.17_160/0.055)_10px,oklch(0.62_0.17_160/0.055)_11px)]"
+            style={{ animationDelay: "2s" }}
+          />
+        </div>
+      ) : null}
+
+      {/* Vignette for depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_70%_at_50%_0%,transparent_40%,var(--background)_100%)] opacity-50 dark:opacity-70" />
     </div>
   );
 }

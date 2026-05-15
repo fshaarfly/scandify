@@ -113,7 +113,7 @@ export function LandingHero() {
                   className="h-12 min-w-[200px] rounded-full px-8 shadow-md shadow-primary/20"
                   asChild
                 >
-                  <Link href="#early-access">Gabung early access</Link>
+                  <Link href="/login">Masuk</Link>
                 </Button>
               </LandingPressable>
               <LandingPressable className="inline-flex justify-center lg:justify-start">

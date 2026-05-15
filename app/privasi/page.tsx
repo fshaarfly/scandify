@@ -51,9 +51,9 @@ export default function PrivasiPage() {
           <h2 className="text-base font-semibold text-foreground sm:text-lg">3. Data yang kami kumpulkan</h2>
           <ul className="list-disc space-y-2 pl-5">
             <li>
-              <span className="font-medium text-foreground">Early access / formulir:</span> alamat email
-              yang Anda kirimkan untuk pendaftaran kabar beta, beserta metadata teknis minimal (misalnya
-              waktu pengiriman) yang diperlukan untuk operasional.
+              <span className="font-medium text-foreground">Akun &amp; autentikasi:</span> bila Anda
+              mendaftar atau masuk, identitas dan kredensial dikelola melalui penyedia autentikasi (rencana:
+              Supabase) sesuai ketentuan mereka dan pengaturan produk kami.
             </li>
             <li>
               <span className="font-medium text-foreground">Log &amp; analitik:</span> kami dapat
@@ -81,7 +81,7 @@ export default function PrivasiPage() {
           <h2 className="text-base font-semibold text-foreground sm:text-lg">5. Penyimpanan &amp; retensi</h2>
           <p>
             Data disimpan selama diperlukan untuk tujuan di atas atau sesuai jangka waktu yang kami
-            tentukan di dokumentasi produk. Anda dapat meminta penghapusan data kontak early access sesuai
+            tentukan di dokumentasi produk. Anda dapat meminta penghapusan atau pembatasan data akun sesuai
             prosedur yang kami sediakan.
           </p>
         </section>

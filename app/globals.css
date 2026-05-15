@@ -127,3 +127,47 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hero backdrop — subtle motion (respects .motion-reduce via Tailwind) */
+@keyframes landing-hero-grid-drift {
+  0%,
+  100% {
+    background-position:
+      0 0,
+      0 0;
+  }
+  50% {
+    background-position:
+      56px 48px,
+      -28px 24px;
+  }
+}
+
+@keyframes landing-hero-scan-sweep {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.35;
+  }
+  92% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-hero-shimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(-8%) skewX(-12deg);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translateX(8%) skewX(-12deg);
+  }
+}
